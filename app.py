@@ -24,7 +24,7 @@ client = AzureOpenAI(
 ASSISTANT_ID = os.getenv("ASSISTANT_ID")
 
 
-# 🔹 Chat function
+#  Chat function
 def run_assistant(user_input: str) -> str:
     try:
         # Create thread once
@@ -82,7 +82,7 @@ def run_assistant(user_input: str) -> str:
         return f"Error: {str(e)}"
 
 
-# 🔹 Routes
+#  Routes
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -126,5 +126,9 @@ def reset():
     return jsonify({"status": "reset"})
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# if __name__ == "__main__":
+#     app.run(debug=True)     
+
+
+# uncomment above to run locally, but for Azure deployment we use gunicorn with the command:
+# gunicorn app:app --workers 3 --timeout 120 --bind 0.0.0.0:5000
