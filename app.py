@@ -95,6 +95,31 @@ def chat():
     return jsonify({"reply": reply})
 
 
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if request.method == "GET":
+        try:
+            assistant = client.beta.assistants.retrieve(ASSISTANT_ID)
+            return jsonify({
+                "instructions": assistant.instructions,
+            })
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    if request.method == "POST":
+        data = request.json
+        new_instructions = data.get("instructions")
+        
+        try:
+            client.beta.assistants.update(
+                ASSISTANT_ID,
+                instructions=new_instructions
+            )
+            return jsonify({"status": "updated"})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
 @app.route("/reset")
 def reset():
     session.pop("thread_id", None)

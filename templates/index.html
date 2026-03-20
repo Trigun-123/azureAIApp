@@ -38,22 +38,32 @@
           </p>
         </div>
       </div>
-      <button
-        onclick="startNewChat()"
-        class="flex items-center gap-2 bg-slate-700 hover:bg-blue-600 text-white text-xs px-4 py-2 rounded-full font-medium transition-all duration-200 border border-slate-600 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 group"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors"
-        >
-          <path
-            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"
-          />
-        </svg>
-        New Chat
-      </button>
+      <div class="flex items-center gap-3">
+          <button onclick="openSettings()" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white px-3 py-2 rounded-full transition-all duration-200 border border-slate-600 hover:border-slate-500 text-xs font-medium" title="Settings">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.115 1.115 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Settings</span>
+          </button>
+          
+          <button
+            onclick="startNewChat()"
+            class="flex items-center gap-2 bg-slate-700 hover:bg-blue-600 text-white text-xs px-4 py-2 rounded-full font-medium transition-all duration-200 border border-slate-600 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 group"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors"
+            >
+              <path
+                d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"
+              />
+            </svg>
+            New Chat
+          </button>
+      </div>
     </header>
 
     <!-- Chat Area -->
@@ -246,6 +256,95 @@
           console.error("New Chat failed", e);
         }
       }
+
+      // Settings Functions
+      // Elements are fetched dynamically to avoid null reference if script runs before DOM
+      
+      async function openSettings() {
+        const settingsModal = document.getElementById("settings-modal");
+        const instructionsInput = document.getElementById("instructions-input");
+        
+        settingsModal.classList.remove("hidden");
+        // Load current settings
+        try {
+            const res = await fetch("/settings");
+            const data = await res.json();
+            if(data.instructions) {
+                instructionsInput.value = data.instructions;
+            }
+        } catch(e) {
+            console.error("Failed to load settings", e);
+        }
+      }
+
+      function closeSettings() {
+        document.getElementById("settings-modal").classList.add("hidden");
+      }
+
+      async function saveSettings() {
+        const settingsModal = document.getElementById("settings-modal");
+        const instructionsInput = document.getElementById("instructions-input");
+        
+        const btn = document.getElementById("save-settings-btn");
+        const originalText = btn.innerText;
+        btn.innerText = "Saving...";
+        btn.disabled = true;
+
+        try {
+            await fetch("/settings", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    instructions: instructionsInput.value
+                })
+            });
+            closeSettings();
+            // Start a new chat to apply changes cleanly
+            startNewChat();
+        } catch(e) {
+            console.error("Failed to save", e);
+            alert("Failed to save settings");
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+      }
     </script>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center animate-fade-in p-4">
+        <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg border border-slate-700 transform transition-all scale-100">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-400">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.43.72 1.19.72 1.73 0 .54-.225 1.294-.72 1.73m0-3.46a24.42 24.42 0 000 3.46" />
+                    </svg>
+                    Assistant Settings
+                </h2>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">System Instructions</label>
+                    <p class="text-xs text-slate-500 mb-2">Define how the AI assistant should behave, its persona, and rules.</p>
+                    <textarea 
+                        id="instructions-input" 
+                        rows="10" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all resize-none font-mono tracking-wide scrollbar-hide"
+                        placeholder="You are a helpful AI assistant..."></textarea>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-slate-700 flex justify-end gap-3">
+                <button onclick="closeSettings()" class="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors">Cancel</button>
+                <button id="save-settings-btn" onclick="saveSettings()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium shadow-lg shadow-blue-600/20 transition-all">Save Changes</button>
+            </div>
+        </div>
+    </div>
   </body>
 </html>
