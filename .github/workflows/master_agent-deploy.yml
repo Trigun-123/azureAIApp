@@ -1,4 +1,4 @@
-name: Deploy Flask App to Azure
+name: Deploy Flask App to Azure v2
 
 on:
   push:
@@ -17,7 +17,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-
-          app-name: 'agent-deploy'
-          slot-name: 'Production'
+          app-name: "agent-deploy"
+          slot-name: "Production"
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AE110B6C88024314BCE2377DE57AD53A }}
