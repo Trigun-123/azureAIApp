@@ -3,7 +3,7 @@ name: Build and deploy Python app to Azure Web App v2
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
