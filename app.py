@@ -9,7 +9,6 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
-# Check required environment variables
 required_vars = ["AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY", "ASSISTANT_ID"]
 missing_vars = [var for var in required_vars if not os.getenv(var)]
 if missing_vars:
@@ -23,34 +22,28 @@ client = AzureOpenAI(
 
 ASSISTANT_ID = os.getenv("ASSISTANT_ID")
 
-
-#  Chat function
 def run_assistant(user_input: str) -> str:
     try:
-        # Create thread once
         if "thread_id" not in session:
             thread = client.beta.threads.create()
             session["thread_id"] = thread.id
 
         thread_id = session["thread_id"]
 
-        # Add user message
         client.beta.threads.messages.create(
             thread_id=thread_id,
             role="user",
             content=user_input
         )
 
-        # Run assistant
         run = client.beta.threads.runs.create(
             thread_id=thread_id,
             assistant_id=ASSISTANT_ID
         )
 
-        # Wait for completion
         start_time = time.time()
         while run.status in ["queued", "in_progress"]:
-            if time.time() - start_time > 60:  # 1 min timeout
+            if time.time() - start_time > 60:
                 return "Error: Request timed out."
             time.sleep(1)
             run = client.beta.threads.runs.retrieve(
@@ -59,7 +52,6 @@ def run_assistant(user_input: str) -> str:
             )
 
         if run.status == "completed":
-            # Get latest assistant response
             messages = client.beta.threads.messages.list(
                 thread_id=thread_id, limit=1
             )
@@ -82,7 +74,6 @@ def run_assistant(user_input: str) -> str:
         return f"Error: {str(e)}"
 
 
-#  Routes
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -128,7 +119,3 @@ def reset():
 
 if __name__ == "__main__":
     app.run(debug=True)     
-
-
-# uncomment above to run locally, but for Azure deployment we use gunicorn with the command:
-# gunicorn app:app --workers 3 --timeout 120 --bind 0.0.0.0:5000
