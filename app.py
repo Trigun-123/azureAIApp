@@ -126,8 +126,8 @@ def reset():
     return jsonify({"status": "reset"})
 
 
-# if __name__ == "__main__":
-#     app.run(debug=True)     
+if __name__ == "__main__":
+    app.run(debug=True)     
 
 
 # uncomment above to run locally, but for Azure deployment we use gunicorn with the command:
